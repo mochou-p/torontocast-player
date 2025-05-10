@@ -1,7 +1,7 @@
 <!-- torontocast-player/README.md -->
 
 # torontocast player
-terminal-based internet radio player for torontocast stations  
+terminal-based internet radio player for [torontocast stations](https://asiadreamradio.torontocast.stream/stations/en/index.html)  
 most of the functionality uses bash, C is used for libc
 
 ## usage

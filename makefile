@@ -1,7 +1,7 @@
 # torontocast-player/makefile
 
 ifneq ($(shell uname), Linux)
-	only linux is supported
+	$(error only linux is supported)
 endif
 
 MAKEFLAGS        += --no-print-directory
