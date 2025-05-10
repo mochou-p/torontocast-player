@@ -1,7 +1,8 @@
 <!-- torontocast-player/README.md -->
 
 # torontocast player
-terminal-based internet radio player for torontocast stations
+terminal-based internet radio player for torontocast stations  
+most of the functionality uses bash, C is used for libc
 
 ## usage
 build with `make`/`make debug`  

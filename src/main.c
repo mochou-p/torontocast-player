@@ -12,17 +12,34 @@
     int check_dependencies(void);
 
     int main(void) {
+        /* check for bash */
         if (0 != system("which bash &> /dev/null")) {
             printf("\x1b[31merror:\x1b[0m `bash` shell is required\n");
             return 1;
         }
 
+        /* check for bin deps */
         if (0 != check_dependencies()) {
             printf("\x1b[31merror:\x1b[0m not all dependencies are available\n");
             return 2;
         }
 
-        printf("works\n");
+        /* enter alt screen, hide cursor, clear, move cursor to top left */
+        printf("\x1b[?1049h\x1b[?25l\x1b[2J\x1b[1;1H");
+        fflush(stdout);
+
+        /* start the player in background, save its PID */
+        system("bash -c 'ffplay -i https://kathy.torontocast.com:3340 -nodisp -fast -loglevel -8 & echo $! > /tmp/torontocast-player-pid'");
+
+        /* temp */
+        system("bash -c 'sleep 5'");
+
+
+        /* stop the player, delete the PID file */
+        system("bash -c 'kill $(< /tmp/torontocast-player-pid); rm /tmp/torontocast-player-pid'");
+
+        /* leave alt screen, show cursor */
+        printf("\x1b[?1049l\x1b[?25h");
 
         return 0;
     }
