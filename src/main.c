@@ -3,13 +3,17 @@
 #include <stdio.h>
 
 #if defined(__linux__)
+    #include <errno.h>
     #include <stdlib.h>
     #include <string.h>
+    #include <sys/ioctl.h>
+    #include <unistd.h>
 
     #define WHICH_COMMAND_LENGTH 64
 
 
-    int check_dependencies(void);
+    int  check_dependencies(void);
+    void print_cell_size   (void);
 
     int main(void) {
         /* check for bash shell */
@@ -71,6 +75,9 @@
             "\x1b[?25h"    /* show the cursor          */
         );
 
+        print_cell_size();
+        
+
         return 0;
     }
 
@@ -101,6 +108,32 @@
         }
 
         return ret;
+    }
+
+    void print_cell_size(void) {
+        struct   winsize ws;
+        unsigned short   cell_width;
+        unsigned short   cell_height;
+
+        ws.ws_col    = 0;
+        ws.ws_row    = 0;
+        ws.ws_xpixel = 0;
+        ws.ws_ypixel = 0;
+
+        if (0 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws)) {
+            printf("\x1b[31merror:\x1b[0m `ioctl` returned \"%d: %s\"\n", errno, strerror(errno));
+            return;
+        }
+
+        if (0 == (ws.ws_col * ws.ws_row * ws.ws_xpixel * ws.ws_ypixel)) {
+            printf("\x1b[31merror:\x1b[0m one of the terminal sizes was invalid\n");
+            return;
+        }
+
+        cell_width  = ws.ws_xpixel / ws.ws_col;
+        cell_height = ws.ws_ypixel / ws.ws_row;
+
+        printf("cell size = %hux%hu\n", cell_width, cell_height);
     }
 #else
     int main(void) {
