@@ -1,0 +1,5 @@
+# torontocast-player/.gitignore
+
+bin/
+*.txt
+
