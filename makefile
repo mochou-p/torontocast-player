@@ -1,5 +1,9 @@
 # torontocast-player/makefile
 
+ifneq ($(shell uname), Linux)
+	only linux is supported
+endif
+
 MAKEFLAGS        += --no-print-directory
 
 BUILD_DIR        := bin
@@ -13,7 +17,7 @@ PREPARE          := mkdir $(BUILD_DIR)
 
 COMPILER         := gcc
 FLAGS            := -std=c89 -O3 -DNDEBUG -march=native -fwhole-program -flto
-DEBUG_FLAGS      := -std=c89 -std=c99 -pedantic -g3 -Wall -Wextra -Wpedantic -Wconversion -Werror
+DEBUG_FLAGS      := -std=c89 -pedantic -g3 -Wall -Wextra -Wpedantic -Wconversion -Werror
 
 
 TARGET:

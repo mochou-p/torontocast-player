@@ -4,7 +4,16 @@
 terminal-based internet radio player for torontocast stations
 
 ## usage
-`make && make run`
+build with `make`/`make debug`  
+run with `make run`/`make run_debug`
+
+## requirements
+|                    |                               |
+|-------------------:|:------------------------------|
+|                 OS | Linux                         |
+|              shell | bash                          |
+|   runtime binaries | curl, ffplay, grep, img2sixel |
+| build dependencies | gcc, make                     |
 
 ## license
 [GPL-3.0](./LICENSE)
