@@ -103,7 +103,7 @@
             RADIO_URL, API_PORT, CURRENT_SONG, JROCK_FRAGMENT,
             img_size, img_size,
             x_off, x_off, x_off,
-            x_off - 2
+            (unsigned short) (x_off - 2)
         );
         system(command);
 

@@ -8,6 +8,7 @@ MAKEFLAGS        += --no-print-directory
 
 BUILD_DIR        := bin
 SOURCE_DIR       := src
+MAIN             := $(SOURCE_DIR)/main.c
 PROGRAM          := torontocast-player
 DEBUG_PROGRAM    := $(PROGRAM)_debug
 EXECUTABLE       := $(BUILD_DIR)/$(PROGRAM)
@@ -19,14 +20,18 @@ COMPILER         := gcc
 FLAGS            := -std=c89 -O3 -DNDEBUG -march=native -fwhole-program -flto
 DEBUG_FLAGS      := -std=c89 -pedantic -g3 -Wall -Wextra -Wpedantic -Wconversion -Wno-overlength-strings -Werror
 
+CPPCHECK_FLAGS   := --cppcheck-build-dir=$(BUILD_DIR) --check-level=exhaustive --enable=all --inconclusive --fsigned-char -j 1 --language=c --max-ctu-depth=0 --platform=unix64 --std=c89 --verbose --suppress=unmatchedSuppression --suppress=missingIncludeSystem --suppress=checkersReport --suppress=variableScope --error-exitcode=1
+
+
 TARGET:
 	@$(PREPARE) 2> /dev/null ||:
-	@$(COMPILER) $(FLAGS) $(SOURCE_DIR)/main.c -o $(EXECUTABLE)
+	@$(COMPILER) $(FLAGS) $(MAIN) -o $(EXECUTABLE)
 	@echo -e "\x1b[32mok:\x1b[0m compiled successfully (run with \`make run\`)"
 
 debug:
 	@$(PREPARE) 2> /dev/null ||:
-	@$(COMPILER) $(DEBUG_FLAGS) $(SOURCE_DIR)/main.c -o $(DEBUG_EXECUTABLE)
+	@cppcheck $(CPPCHECK_FLAGS) $(MAIN) > /dev/null
+	@$(COMPILER) $(DEBUG_FLAGS) $(MAIN) -o $(DEBUG_EXECUTABLE)
 	@echo -e "\x1b[32mok:\x1b[0m compiled successfully (run with \`make run_debug\`)"
 
 run:
