@@ -9,7 +9,8 @@
     #include <sys/ioctl.h>
     #include <unistd.h>
 
-    #define WHICH_COMMAND_LENGTH 64
+    #define WHICH_COMMAND_MAX_LENGTH   64
+    #define  MAIN_COMMAND_MAX_LENGTH 1024
 
     #define RADIO_URL      "https://kathy.torontocast.com"
     #define CURRENT_SONG   "api/v2/history/?limit=1&offset=0"
@@ -19,14 +20,14 @@
 
 
     static int check_dependencies(void);
-    static int get_cell_size     (unsigned short *, unsigned short *);
+    static int get_cell_size     (unsigned short *const, unsigned short *const);
 
     int main(void) {
         unsigned short cell_width;
         unsigned short cell_height;
         unsigned short img_size;
         unsigned short x_off;
-        char           command[2048];
+        char           command[MAIN_COMMAND_MAX_LENGTH];
 
         /* check for bash shell */
         if (0 != system("which bash &> /dev/null")) {
@@ -122,19 +123,13 @@
             "curl", "date", "ffplay", "grep", "img2sixel", "rm", "sleep", "stty"
         };
 
-        char command[WHICH_COMMAND_LENGTH];
+        char command[WHICH_COMMAND_MAX_LENGTH];
         int  exitcode;
         int  ret = 0;
 
         unsigned char i   = 0;
         unsigned char len = sizeof(dependencies) / sizeof(dependencies[0]);
         for (; i < len; ++i) {
-            if (WHICH_COMMAND_LENGTH <= (strlen(dependencies[i]) + strlen("bash -c 'which  &> /dev/null'"))) {
-                /* cause no snprintf in c89 */
-                printf("\x1b[31mfatal:\x1b[0m saved from sprintf buffer overflow\n");
-                return -1;
-            }
-
             sprintf(command, "bash -c 'which %s &> /dev/null'", dependencies[i]);
             exitcode = system(command);
 
@@ -147,7 +142,7 @@
         return ret;
     }
 
-    static int get_cell_size(unsigned short *width, unsigned short *height) {
+    static int get_cell_size(unsigned short *const width, unsigned short *const height) {
         struct winsize ws;
         ws.ws_col    = 0;
         ws.ws_row    = 0;
