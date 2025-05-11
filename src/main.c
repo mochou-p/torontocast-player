@@ -34,19 +34,19 @@
         /* check for bash shell */
         if (0 != system("which bash &> /dev/null")) {
             printf("\x1b[31merror:\x1b[0m `bash` shell is required\n");
-            return 1;
+            return 2;
         }
 
         /* check for binary dependencies */
         if (0 != check_dependencies()) {
             printf("\x1b[31merror:\x1b[0m not all dependencies are available\n");
-            return 2;
+            return 3;
         }
 
         /* calculate size for img2sixel */
         if (0 != get_cell_size(&cell_width, &cell_height)) {
             printf("\x1b[31merror:\x1b[0m failed to get terminal sizes\n");
-            return 3;
+            return 4;
         }
         img_size = cell_height * 3;
         x_off    = img_size / cell_width + 3;
@@ -76,7 +76,7 @@
                     /* get the json response about the current song from the API */
                     "response=$(curl --silent \"%s:%d/%s&%s\");"
                     /* extract the relevant fields */
-                    "image=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"img_large_url\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
+                    "image=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"img_url\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
                     "author=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"author\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
                     "title=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"title\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
                     "album=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"album\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
@@ -119,6 +119,11 @@
 
         /* restore stdin echo */
         system("bash -c 'stty icanon echo'");
+
+        /* close inherited pseudo-ttys */
+        fclose(stdin );
+        fclose(stdout);
+        fclose(stderr);
 
         return 0;
     }

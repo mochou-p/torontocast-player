@@ -21,7 +21,7 @@ FLAGS            := -std=c89 -O3 -DNDEBUG -march=native -fwhole-program -flto
 DEBUG_FLAGS      := -std=c89 -pedantic -g3 -Wall -Wextra -Wpedantic -Wconversion -Wno-overlength-strings -Werror
 
 CPPCHECK_FLAGS   := --cppcheck-build-dir=$(BUILD_DIR) --check-level=exhaustive --enable=all --inconclusive --fsigned-char -j 1 --language=c --max-ctu-depth=0 --platform=unix64 --std=c89 --verbose --suppress=unmatchedSuppression --suppress=missingIncludeSystem --suppress=checkersReport --suppress=variableScope --error-exitcode=1
-
+VALGRIND_FLAGS   := --tool=memcheck --track-fds=all --error-limit=no --show-error-list=yes --keep-debuginfo=yes --show-below-main=yes --default-suppressions=no --smc-check=all --read-inline-info=yes --read-var-info=yes --show-emwarns=yes --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --track-origins=yes --expensive-definedness-checks=yes
 
 TARGET:
 	@$(PREPARE) 2> /dev/null ||:
@@ -43,7 +43,7 @@ run:
 
 run_debug:
 	@if [ -s "$(DEBUG_EXECUTABLE)" ]; then \
-		$(DEBUG_EXECUTABLE) ||: ; \
+		valgrind $(VALGRIND_FLAGS) $(DEBUG_EXECUTABLE) ||: ; \
 	else \
 		echo -e "\x1b[31merror:\x1b[0m "$(DEBUG_PROGRAM)" is clean (build with \`make debug\`)"; \
 	fi
