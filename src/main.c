@@ -11,6 +11,12 @@
 
     #define WHICH_COMMAND_LENGTH 64
 
+    #define RADIO_URL      "https://kathy.torontocast.com"
+    #define CURRENT_SONG   "api/v2/history/?limit=1&offset=0"
+    #define JROCK_FRAGMENT "server=4"
+    #define API_PORT       3310
+    #define JROCK_PORT     3340
+
 
     static int check_dependencies(void);
     static int get_cell_size     (unsigned short *, unsigned short *);
@@ -49,12 +55,15 @@
         printf("\x1b[?25l");
         fflush(stdout);
 
-        system(
+        sprintf(
+            command,
             "bash -c '"
                 /* launch the player in the background */
-                "ffplay -i https://kathy.torontocast.com:3340 -nodisp -fast -loglevel -8 &"
-            "'"
+                "ffplay -i %s:%d -nodisp -fast -loglevel -8 &"
+            "'",
+            RADIO_URL, JROCK_PORT
         );
+        system(command);
 
         sprintf(
             command,
@@ -62,7 +71,7 @@
                 /* forever until ^C */
 	            "while true; do "
                     /* get the json response about the current song from the API */
-                    "response=$(curl --silent \"https://kathy.torontocast.com:3310/api/v2/history/?limit=1&offset=0&server=4\");"
+                    "response=$(curl --silent \"%s:%d/%s&%s\");"
                     /* extract the relevant fields */
                     "image=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"img_large_url\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
                     "author=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"author\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
@@ -90,6 +99,7 @@
                     "echo;"
                 "done"
             "'",
+            RADIO_URL, API_PORT, CURRENT_SONG, JROCK_FRAGMENT,
             img_size, img_size,
             x_off, x_off, x_off,
             x_off - 2

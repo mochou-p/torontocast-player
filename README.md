@@ -10,7 +10,9 @@ build with `make`/`make debug`
 run with `make run`/`make run_debug`  
 (or just run the "torontocast-player[\_debug]" executable from bin/)  
 
-exit by pressing [Ctrl]+\[C] (or send `^C`/SIGINT some other way)
+exit by pressing [Ctrl]+\[C] (or send `^C`/SIGINT some other way)  
+
+clean directory with `make clean`
 
 ## requirements
 | | |
@@ -23,6 +25,7 @@ exit by pressing [Ctrl]+\[C] (or send `^C`/SIGINT some other way)
 
 ## notes
 most of the functionality is in bash, C is used for libc  
+
 the screenshot uses:
 - terminal: [foot](https://codeberg.org/dnkl/foot)
 - font: [MapleMono NF CN ExtraBold](https://github.com/subframe7536/maple-font)

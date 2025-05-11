@@ -46,9 +46,3 @@ run_debug:
 clean:
 	@rm -r $(BUILD_DIR) 2> /dev/null && echo -e "\x1b[32mok:\x1b[0m cleaned" || echo -e "\x1b[33mwarning:\x1b[0m nothing to clean"
 
-all:
-	@$(MAKE) && $(MAKE) run ; $(MAKE) clean
-
-all_debug:
-	@$(MAKE) debug && $(MAKE) run_debug ; $(MAKE) clean
-
