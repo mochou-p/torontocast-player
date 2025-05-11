@@ -39,12 +39,11 @@
             printf("\x1b[31merror:\x1b[0m failed to get terminal sizes\n");
             return 3;
         }
-        /* TODO: this will sometimes make a black strip in the sixel image,
-         *       because unsigned short division (pixels/rows),
-         *       use atleast float up until using it
-         */
         img_size = cell_height * 3;
         x_off    = img_size / cell_width + 3;
+
+        /* silence stdin echo */
+        system("bash -c 'stty -echo -icanon'");
 
         /* immediately hide the cursor */
         printf("\x1b[?25l");
@@ -52,57 +51,65 @@
 
         system(
             "bash -c '"
-                /* launch the player in background */
+                /* launch the player in the background */
                 "ffplay -i https://kathy.torontocast.com:3340 -nodisp -fast -loglevel -8 &"
-                /* save its PID */
-                "echo $! > /tmp/torontocast-player-pid"
             "'"
         );
 
         sprintf(
             command,
             "bash -c '"
-                /* get the json response about the current song from the API */
-                "response=$(curl --silent \"https://kathy.torontocast.com:3310/api/v2/history/?limit=1&offset=0&server=4\");"
-                /* extract the relevant fields */
-                "image=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"img_large_url\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
-                "author=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"author\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
-                "title=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"title\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
-                "album=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"album\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
-                /* draw album cover */
-                "img2sixel -w %hu -h %hu -I -S -d a_dither -r bilinear -q low -l disable -b xterm256 -E fast $image;"
-                /* print song info */
-                "echo -en \"\\x1b[2A\";"
-                "echo -en \"\\x1b[%huG\\x1b[34mauthor:\\x1b[0m ${author}\";"
-                "echo -en \"\\x1b[1B\";"
-                "echo -en \"\\x1b[%huG\\x1b[34mtitle:\\x1b[0m  ${title}\";"
-                "echo -en \"\\x1b[1B\";"
-                "echo -e  \"\\x1b[%huG\\x1b[34malbum:\\x1b[0m  ${album}\""
+                /* forever until ^C */
+	            "while true; do "
+                    /* get the json response about the current song from the API */
+                    "response=$(curl --silent \"https://kathy.torontocast.com:3310/api/v2/history/?limit=1&offset=0&server=4\");"
+                    /* extract the relevant fields */
+                    "image=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"img_large_url\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
+                    "author=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"author\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
+                    "title=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"title\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
+                    "album=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"album\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
+                    "ts=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"ts\\\":\\K[^,]+\");"
+                    "length=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"length\\\":\\K[^,]+\");"
+                    /* draw album cover */
+                    "img2sixel -w %hu -h %hu -I -S -d a_dither -r bilinear -q low -l disable -b xterm256 -E fast $image;"
+                    /* print song info */
+                    "echo -en \"\\x1b[2A\";"
+                    "echo -en \"\\x1b[%huG\\x1b[34mauthor:\\x1b[0m ${author}\";"
+                    "echo -en \"\\x1b[1B\";"
+                    "echo -en \"\\x1b[%huG\\x1b[34mtitle:\\x1b[0m  ${title}\";"
+                    "echo -en \"\\x1b[1B\";"
+                    "echo -e  \"\\x1b[%huG\\x1b[34malbum:\\x1b[0m  ${album}\";"
+                    /* print spaces to remove the black strip that sometimes shows in the sixel
+                     * could also be fixed by using more precise arithmetic ig (short -> float/double)
+                     */
+                    "for i in {1..%hu}; do "
+                        "echo -n \" \";"
+                    "done;"
+                    /* wait for next song (+4s because the metadata and audio stream are out of sync */
+                    "sleep $((((${ts} + ${length}) - ($(date +%%s) * 1000)) / 1000 + 4));"
+                    "echo;"
+                "done"
             "'",
             img_size, img_size,
-            x_off, x_off, x_off
+            x_off, x_off, x_off,
+            x_off - 2
         );
         system(command);
 
-        /* TEMP */
-        system("bash -c 'sleep 5'");
-
-        system(
-            "bash -c '"
-                "kill $(< /tmp/torontocast-player-pid);"   /* stop the player process */
-                "rm /tmp/torontocast-player-pid"          /* delete the PID file     */
-            "'"
+        printf(
+            "\x1b[1G"     /* go to the start of the previous line */
+            "\x1b[?25h"  /* show the cursor                      */
         );
 
-        /* show the cursor */
-        printf("\x1b[?25h");
+        /* restore stdin echo */
+        system("bash -c 'stty icanon echo'");
 
         return 0;
     }
 
     static int check_dependencies(void) {
         static const char *const dependencies[] = {
-            "curl", "ffplay", "grep", "img2sixel", "rm", "sleep", "stty"
+            "curl", "date", "ffplay", "grep", "img2sixel", "rm", "sleep", "stty"
         };
 
         char command[WHICH_COMMAND_LENGTH];
