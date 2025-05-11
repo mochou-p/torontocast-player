@@ -10,7 +10,9 @@
     #include <unistd.h>
 
     #define WHICH_COMMAND_MAX_LENGTH   64
-    #define  MAIN_COMMAND_MAX_LENGTH 1024
+    #define  MAIN_COMMAND_MAX_LENGTH 2048
+
+    #define IMG_PATH "/tmp/torontocast-album-cover.jpg"
 
     #define RADIO_URL      "https://kathy.torontocast.com"
     #define CURRENT_SONG   "api/v2/history/?limit=1&offset=0"
@@ -70,7 +72,7 @@
             command,
             "bash -c '"
                 /* forever until ^C */
-	            "while true; do "
+                "while true; do "
                     /* get the json response about the current song from the API */
                     "response=$(curl --silent \"%s:%d/%s&%s\");"
                     /* extract the relevant fields */
@@ -81,7 +83,9 @@
                     "ts=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"ts\\\":\\K[^,]+\");"
                     "length=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"length\\\":\\K[^,]+\");"
                     /* draw album cover */
-                    "img2sixel -w %hu -h %hu -I -S -d a_dither -r bilinear -q low -l disable -b xterm256 -E fast $image;"
+                    "curl -s -o %s \"${image}\";"
+                    "img2sixel -w %hu -h %hu -I -S -d a_dither -r bilinear -q low -l disable -b xterm256 -E fast %s;"
+                    "rm %s;"
                     /* print song info */
                     "echo -en \"\\x1b[2A\";"
                     "echo -en \"\\x1b[%huG\\x1b[34mauthor:\\x1b[0m ${author}\";"
@@ -101,7 +105,8 @@
                 "done"
             "'",
             RADIO_URL, API_PORT, CURRENT_SONG, JROCK_FRAGMENT,
-            img_size, img_size,
+            IMG_PATH, img_size, img_size, IMG_PATH, IMG_PATH,
+
             x_off, x_off, x_off,
             (unsigned short) (x_off - 2)
         );
