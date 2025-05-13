@@ -9,29 +9,28 @@ plays music in the background, and shows info about the current song
 ![](https://i.imgur.com/ZOAp6z1.png)
 
 ## usage
-build with `make`/`make debug`  
+build with `make` or `make debug`  
 
-run with `make run`/`make run_debug`  
-(or just run the "torontocast-player[\_debug]" executable from bin/)  
+run with `make run` or `make run_debug`  
+(alternatively just run the "torontocast-player[\_debug]" executable from the "bin" directory)  
 
-exit by pressing [Ctrl]+\[C] (or send `^C` some other way)  
+exit by pressing [Ctrl]+\[C] (`^C`/SIGINT)  
 
-clean directory with `make clean`
+clean directory with `make clean`  
+(alternatively just do `rm -r bin`)
 
 ## requirements
 | | |
 |-:|:-|
-| kernel | [Linux](https://kernel.org) |
-| terminal | [one that supports sixel graphics](https://www.arewesixelyet.com) |
 | shell | [bash](https://www.gnu.org/software/make) (does **NOT** have to be the current shell) |
-| runtime binaries | [coreutils](https://www.gnu.org/software/coreutils), [cURL](https://github.com/curl/curl), [FFmpeg](https://github.com/FFmpeg/FFmpeg), [libsixel](https://github.com/libsixel/libsixel)) |
+| runtime binaries | [Chafa](https://github.com/hpjansson/chafa) (and optionally [libsixel](https://github.com/libsixel/libsixel) if your [terminal supports it](https://www.arewesixelyet.com)), [coreutils](https://www.gnu.org/software/coreutils), [cURL](https://github.com/curl/curl), [FFmpeg](https://github.com/FFmpeg/FFmpeg) |
 | build dependencies | [gcc](https://www.gnu.org/software/gcc), [make](https://www.gnu.org/software/make) |
 | debugging tools | [Cppcheck](https://github.com/danmar/cppcheck), [Valgrind](https://valgrind.org) |
 
 ## notes
 only tested on these distros: [Arch](https://archlinux.org), [NixOS](https://nixos.org)  
 
-since exiting is currently done through SIGINT, running the program will most probably be the last thing that happens in your shell. that means that in this command: `make run; echo "hello"`, "hello" will not be printed  
+since exiting is currently done through SIGINT, running the program will most probably be the last thing that happens in your shell. this means that in this command: `make run; echo "hello"`, "hello" will not be printed  
 
 most of the functionality is in bash, C is used for libc  
 

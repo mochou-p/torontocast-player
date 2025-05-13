@@ -27,7 +27,6 @@
     int main(void) {
         unsigned short cell_width;
         unsigned short cell_height;
-        unsigned short img_size;
         unsigned short x_off;
         char           command[MAIN_COMMAND_MAX_LENGTH];
 
@@ -43,20 +42,19 @@
             return 3;
         }
 
-        /* calculate size for img2sixel */
+        /* calculate horizontal offset for current font */
         if (0 != get_cell_size(&cell_width, &cell_height)) {
             printf("\x1b[31merror:\x1b[0m failed to get terminal sizes\n");
             return 4;
         }
-        img_size = cell_height * 3;
-        x_off    = img_size / cell_width + 3;
-
-        /* silence stdin echo */
-        system("bash -c 'stty -echo -icanon'");
+        x_off = (unsigned short) (cell_height * 3 / cell_width + 3);
 
         /* immediately hide the cursor */
         printf("\x1b[?25l");
         fflush(stdout);
+
+        /* silence stdin echo */
+        system("bash -c 'stty -echo -icanon'");
 
         sprintf(
             command,
@@ -82,43 +80,41 @@
                     "album=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"album\\\":\\\"\\K[^\\\"]+(?=\\\"\\,\\\")\");"
                     "ts=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"ts\\\":\\K[^,]+\");"
                     "length=$(echo -n \"${response}\" | grep -m 1 -oP \"\\\"length\\\":\\K[^,]+\");"
-                    /* draw album cover */
+                    /* download the album cover */
                     "curl -s -o %s \"${image}\";"
-                    "img2sixel -w %hu -h %hu -I -S -d a_dither -r bilinear -q low -l disable -b xterm256 -E fast %s;"
+                    /* draw it
+                     * big width because it will get clamped to match the height, no matter the font size dimensions ratio
+                     */
+                    "chafa --symbols=all -O 0 --relative=on --margin-bottom=0 --size=1000x3 --animate=off %s;"
+                    /* chafa showed the cursor, hide it again */
+                    "echo -en \"\\x1b[?25l\";"
+                    /* delete it */
                     "rm %s;"
                     /* print song info */
-                    "echo -en \"\\x1b[2A\";"
+                    "echo -en \"\\x1b[3A\";"
                     "echo -en \"\\x1b[%huG\\x1b[34mauthor:\\x1b[0m ${author}\";"
                     "echo -en \"\\x1b[1B\";"
                     "echo -en \"\\x1b[%huG\\x1b[34mtitle:\\x1b[0m  ${title}\";"
                     "echo -en \"\\x1b[1B\";"
                     "echo -e  \"\\x1b[%huG\\x1b[34malbum:\\x1b[0m  ${album}\";"
-                    /* print spaces to remove the black strip that sometimes shows in the sixel
-                     * could also be fixed by using more precise arithmetic ig (short -> float/double)
-                     */
-                    "for i in {1..%hu}; do "
-                        "echo -n \" \";"
-                    "done;"
                     /* wait for next song (+4s because the metadata and audio stream are out of sync */
                     "sleep $((((${ts} + ${length}) - ($(date +%%s) * 1000)) / 1000 + 4));"
                     "echo;"
                 "done"
             "'",
             RADIO_URL, API_PORT, CURRENT_SONG, JROCK_FRAGMENT,
-            IMG_PATH, img_size, img_size, IMG_PATH, IMG_PATH,
-
-            x_off, x_off, x_off,
-            (unsigned short) (x_off - 2)
+            IMG_PATH, IMG_PATH, IMG_PATH,
+            x_off, x_off, x_off
         );
         system(command);
+
+        /* restore stdin echo */
+        system("bash -c 'stty icanon echo'");
 
         printf(
             "\x1b[1G"     /* go to the start of the previous line */
             "\x1b[?25h"  /* show the cursor                      */
         );
-
-        /* restore stdin echo */
-        system("bash -c 'stty icanon echo'");
 
         /* close inherited pseudo-ttys */
         fclose(stdin );
@@ -130,7 +126,7 @@
 
     static int check_dependencies(void) {
         static const char *const dependencies[] = {
-            "curl", "date", "ffplay", "grep", "img2sixel", "rm", "sleep", "stty"
+            "chafa", "curl", "date", "ffplay", "grep", "rm", "sleep", "stty"
         };
 
         char command[WHICH_COMMAND_MAX_LENGTH];
