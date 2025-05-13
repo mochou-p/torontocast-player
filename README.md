@@ -6,29 +6,40 @@ terminal-based internet radio player for [torontocast stations](https://asiadrea
 
 plays music in the background, and shows info about the current song  
 
-![](https://i.imgur.com/ZOAp6z1.png)
+![](https://i.imgur.com/SnGv0YL.png)
 
 ## usage
-build with `make` or `make debug`  
-
-run with `make run` or `make run_debug`  
-(alternatively just run the "torontocast-player[\_debug]" executable from the "bin" directory)  
-
-exit by pressing [Ctrl]+\[C] (`^C`/SIGINT)  
-
-clean directory with `make clean`  
-(alternatively just do `rm -r bin`)
+| action | command | description |
+|:-|:-|:-:|
+| build | `make` | compiles the project into the "bin/" directory |
+| run | `make run` | - |
+| exit | by pressing \[Ctrl]+\[C] | - |
+| install | `make install` | allows running this from any path like a global command<br>(no "/usr/bin/" on NixOS, you can make a shell alias instead) |
+| uninstall | `make uninstall` | - |
+| clean | `make clean` | removes all executables and build/debugging artifacts |
 
 ## requirements
-| | |
-|-:|:-|
-| shell | [bash](https://www.gnu.org/software/make) (does **NOT** have to be the current shell) |
-| runtime binaries | [Chafa](https://github.com/hpjansson/chafa) (and optionally [libsixel](https://github.com/libsixel/libsixel) if your [terminal supports it](https://www.arewesixelyet.com)), [coreutils](https://www.gnu.org/software/coreutils), [cURL](https://github.com/curl/curl), [FFmpeg](https://github.com/FFmpeg/FFmpeg) |
-| build dependencies | [gcc](https://www.gnu.org/software/gcc), [make](https://www.gnu.org/software/make) |
-| debugging tools | [Cppcheck](https://github.com/danmar/cppcheck), [Valgrind](https://valgrind.org) |
+- runtime binaries
+    - [Chafa](https://github.com/hpjansson/chafa) for terminal graphics (and optionally [libsixel](https://github.com/libsixel/libsixel) if your [terminal supports it](https://arewesixelyet.com))
+    - [cURL](https://github.com/curl/curl) for networking
+    - [FFmpeg](https://github.com/FFmpeg/FFmpeg) for playing music (`ffplay`)
+    - GNU software (most Linux distros should already have these)
+        - [bash](https://gnu.org/software/bash) (does **NOT** have to be the current shell)
+        - [coreutils](https://gnu.org/software/coreutils)
+        - [grep](https://gnu.org/software/grep) for API response parsing
+        - [which](https://gnu.org/software/which) for runtime checks of available dependencies
+- build dependencies
+    - [gcc](https://gnu.org/software/gcc) (C compiler)
+    - [make](https://gnu.org/software/make) (build system)
+    - [sudo](https://github.com/sudo-project/sudo) for accessing "/usr/bin/"
+    - optional debugging tools
+        - [Cppcheck](https://github.com/danmar/cppcheck) (static code analyzer)
+        - [Valgrind](https://valgrind.org) (memory-management problem detection)
 
 ## notes
-only tested on these distros: [Arch](https://archlinux.org), [NixOS](https://nixos.org)  
+tested on these Linux distros: [Arch](https://archlinux.org), [NixOS](https://nixos.org)  
+macOS could work, feel free to contribute!  
+Windows support is not planned  
 
 since exiting is currently done through SIGINT, running the program will most probably be the last thing that happens in your shell. this means that in this command: `make run; echo "hello"`, "hello" will not be printed  
 
